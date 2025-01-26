@@ -101,4 +101,16 @@ router.delete("/products/:id", async (req: Request, res: Response, next: NextFun
   }
 });
 
+router.post("/products/stock", async (req: Request, res: Response) => {
+  try {
+    const data = await catalogService.getProductStock(req.body.ids);
+    // return res.status(200).json(data);
+    res.status(200).json(data);
+  } catch (error) {
+    const err = error as Error;
+    // return res.status(500).json(err.message);
+    res.status(500).json(err.message);
+  }
+});
+
 export default router;
