@@ -1,5 +1,6 @@
 // import { CreateProductRequest } from "../dto/product.dto";
 import { ICatalogRepository } from "../interface/catalogRepository.interface";
+import { OrderWithLineItems } from "../types/message.type";
 
 export class CatalogService {
   // private : TS by default sets properties to public. 
@@ -56,5 +57,35 @@ export class CatalogService {
       throw new Error("unable to find product stock details");
     }
     return products;
+  }
+  // L26 22mm
+  async handleBrokerMesage(message: any) {
+    console.log("-------------------> CATALOG_SERVICE handleBrokerMesage");
+    console.log("Catalog Service received message", message);
+    const orderData = message.data as OrderWithLineItems;
+    console.log("CATALOG_SERVICE - handleBrokerMesage : orderData", orderData);
+    const { orderItems } = orderData;
+    console.log("CATALOG_SERVICE - handleBrokerMesage : orderItems", orderItems);
+    orderItems.forEach(async (item) => {
+      console.log("CATALOG_SERVICE - Updating stock for product : item.productId, item.qty");
+      console.log("CATALOG_SERVICE - Updating stock for product", item.productId, item.qty);
+      const product = await this.getProduct(item.productId);
+      if (!product) {
+        console.log(
+          "Product not found during stock update for create order", 
+          item.productId
+        );
+      } else {
+        // update stock
+        const updatedStock = product.stock - item.qty;
+        // L25 52mm : NEED TO IMPLEMENT IF ORDER GOT CANCELLED
+        await this.updateProduct({ 
+          ...product, 
+          stock: updatedStock 
+        });
+      }
+      // perform stock update operation
+    });
+    // Perform action based
   }
 }
